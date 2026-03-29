@@ -9,13 +9,658 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    /* Existing CSS omitted for brevity (keep all your previous styles) */
+    /* ============================================================
+       GLACIER  ·  Unbounded font  ·  Arctic /slash\ hub style
+       Exact FunFri/Neocities unblocked-game-hub pattern
+       Colors kept from original Glacier palette
+       ============================================================ */
+    :root {
+      --abyss:   #061018;
+      --deep:    #0a1928;
+      --indigo:  #132f4a;
+      --navy:    #0d2035;
+      --ice:     #e8f4ff;
+      --mist:    rgba(232,244,255,.65);
+      --faint:   rgba(232,244,255,.35);
+      --accent:  #4facfe;
+      --cyan:    #00d4ff;
+      --border:  rgba(79,172,254,.22);
+      --border-hi: rgba(0,212,255,.45);
+      --glow:    rgba(0,212,255,.25);
+      --tile-bg: rgba(13,32,53,.75);
+      --tile-hover: rgba(19,47,74,.9);
+      --radius:  18px;
+      --radius-lg: 26px;
+      --ease:    cubic-bezier(.16,1,.3,1);
+      --font:    'Unbounded', 'Arial Rounded MT Bold', sans-serif;
+    }
+ 
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+ 
+    body {
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ice);
+      background: var(--abyss);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+ 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+ 
+    a { color: inherit; text-decoration: none; }
+    button { font-family: var(--font); }
+ 
+    /* ============================================================
+       BACKGROUND — aurora + grid (original glacier atmosphere)
+       ============================================================ */
+    .bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 90% 55% at 15% -5%,  rgba(79,172,254,.18), transparent 55%),
+        radial-gradient(ellipse 70% 45% at 88% 12%,  rgba(0,212,255,.12),  transparent 50%),
+        radial-gradient(ellipse 80% 50% at 50% 110%, rgba(19,47,74,.85),   transparent 45%),
+        linear-gradient(170deg, var(--deep) 0%, var(--abyss) 50%, #040c14 100%);
+    }
+    .bg::before {
+      content: "";
+      position: absolute; inset: -6%;
+      background: conic-gradient(
+        from 195deg at 50% 50%,
+        rgba(0,212,255,.05), transparent 22%,
+        rgba(79,172,254,.08), transparent 52%,
+        rgba(180,230,255,.04)
+      );
+      filter: blur(38px);
+      opacity: .5;
+      animation: aurora 32s ease-in-out infinite;
+    }
+    @keyframes aurora {
+      0%,100% { transform: scale(1)      translate(0,0);    opacity:.5; }
+      50%      { transform: scale(1.05)  translate(-1%,1%); opacity:.75; }
+    }
+ 
+    .grid-overlay {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      opacity: .14;
+      background-image:
+        linear-gradient(rgba(79,172,254,.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,172,254,.08) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black, transparent 72%);
+    }
+ 
+    #snow-canvas {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: .5;
+    }
+ 
+    /* ============================================================
+       INTRO SPLASH  —  FunFri pattern: loading bar → Enter
+       ============================================================ */
+    body.intro-open { overflow: hidden; }
+ 
+    .intro {
+      position: fixed; inset: 0; z-index: 20000;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0;
+      background: var(--abyss);
+      transition: opacity .7s var(--ease), transform .8s var(--ease), visibility 0s linear .8s;
+    }
+    .intro.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.04);
+    }
+ 
+    .intro-loading {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      transition: opacity .4s var(--ease), transform .4s var(--ease);
+      width: min(420px,90vw);
+    }
+    .intro.welcome .intro-loading {
+      opacity: 0; transform: translateY(-14px); position: absolute; pointer-events: none;
+    }
+ 
+    .intro-loading-label {
+      font-size: .7rem; font-weight: 600; letter-spacing: .28em;
+      text-transform: uppercase; color: var(--faint);
+    }
+ 
+    .intro-bar {
+      width: 100%; height: 8px; border-radius: 999px;
+      background: rgba(79,172,254,.1);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .intro-bar-fill {
+      display: block; height: 100%; width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+      box-shadow: 0 0 16px rgba(0,212,255,.5);
+      transition: width 1.9s var(--ease);
+    }
+    .intro.bar .intro-bar-fill { width: 100%; }
+ 
+    .intro-welcome {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; text-align: center;
+      opacity: 0; transform: translateY(20px) scale(.97); pointer-events: none;
+      transition: opacity .55s var(--ease) .06s, transform .6s var(--ease) .06s;
+    }
+    .intro.welcome .intro-welcome {
+      opacity: 1; transform: none; pointer-events: auto;
+    }
+ 
+    .slash-title {
+      font-size: clamp(2.4rem, 8vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1;
+      color: var(--ice);
+    }
+    .slash-title .sl { color: var(--cyan); font-weight: 700; }
+    .slash-title .nm {
+      background: linear-gradient(100deg, var(--ice), var(--accent) 45%, var(--cyan));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+ 
+    .intro-sub {
+      font-size: .65rem; font-weight: 500; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--faint);
+    }
+ 
+    .enter-btn {
+      margin-top: 8px;
+      appearance: none; border: 0; cursor: pointer;
+      font-family: var(--font); font-weight: 800;
+      font-size: .8rem; letter-spacing: .2em; text-transform: uppercase;
+      padding: 16px 52px; border-radius: 999px;
+      color: var(--abyss);
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      box-shadow: 0 14px 40px rgba(79,172,254,.35);
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      animation: enter-pulse 2.6s ease-in-out infinite;
+    }
+    .enter-btn:hover  { transform: translateY(-3px) scale(1.04); }
+    .enter-btn:focus-visible { outline: 3px solid var(--ice); outline-offset: 4px; }
+    @keyframes enter-pulse {
+      0%,100% { box-shadow: 0 14px 40px rgba(79,172,254,.35); }
+      50%      { box-shadow: 0 14px 50px rgba(0,212,255,.5); }
+    }
+ 
+    .skip-btn {
+      position: absolute; bottom: 20px; right: 20px;
+      appearance: none; background: transparent;
+      border: 1px solid var(--border); color: var(--faint);
+      font-family: var(--font); font-size: .58rem; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase;
+      padding: 9px 16px; border-radius: 999px; cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    .skip-btn:hover { color: var(--ice); border-color: var(--border-hi); }
+ 
+    .intro-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .intro-p {
+      position: absolute; border-radius: 50%;
+      background: var(--cyan); opacity: 0;
+      animation: p-rise linear infinite;
+    }
+    @keyframes p-rise {
+      0%   { opacity: 0; transform: translateY(0) scale(1); }
+      10%  { opacity: .45; }
+      90%  { opacity: .15; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(.5); }
+    }
+ 
+    /* ============================================================
+       APP SHELL
+       ============================================================ */
+    .app {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .app.fade-in { opacity: 0; transform: translateY(8px); transition: opacity .55s var(--ease), transform .6s var(--ease); }
+    .app.visible  { opacity: 1; transform: none; }
+ 
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6,16,24,.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+    }
+ 
+    .hdr {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+      padding: 14px 24px;
+      max-width: 1100px; margin: 0 auto;
+      flex-wrap: wrap;
+    }
+ 
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer; user-select: none;
+      appearance: none; border: none; background: transparent; color: inherit;
+    }
+    .brand-icon {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(145deg, rgba(79,172,254,.3), rgba(0,212,255,.12));
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      box-shadow: 0 0 20px rgba(0,212,254,.18);
+    }
+    .brand-icon svg { width: 20px; height: 20px; filter: drop-shadow(0 0 8px rgba(0,212,255,.5)); }
+ 
+    .brand-name {
+      font-size: 1.2rem; font-weight: 900; letter-spacing: -.02em; line-height: 1;
+    }
+    .brand-name .sl { color: rgba(0,212,255,.8); }
+ 
+    .nav-wrap { overflow-x: auto; overflow-y: hidden; padding: 2px 0; scrollbar-width: none; }
+    .nav-wrap::-webkit-scrollbar { display: none; }
+ 
+    .nav {
+      position: relative;
+      display: inline-flex; align-items: stretch; gap: 2px; padding: 4px;
+      background: rgba(13,32,53,.6);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      min-width: max-content;
+    }
+ 
+    .nav-pill {
+      position: absolute; top: 4px; left: 4px;
+      height: calc(100% - 8px); width: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      box-shadow: 0 0 22px rgba(0,212,255,.2);
+      pointer-events: none; z-index: 0;
+      transition: transform .4s var(--ease), width .4s var(--ease);
+    }
+ 
+    .nav-btn {
+      position: relative; z-index: 1;
+      appearance: none; border: none; background: transparent;
+      color: var(--mist);
+      font-family: var(--font); font-size: .62rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: 10px 16px; border-radius: 999px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      white-space: nowrap;
+      transition: color .2s;
+    }
+    .nav-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .nav-btn:hover { color: var(--ice); }
+    .nav-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .nav-btn[aria-selected="true"] { color: var(--abyss); font-weight: 800; }
+ 
+    @media (max-width: 680px) {
+      .hdr { flex-direction: column; align-items: stretch; padding: 12px 16px; }
+      .nav { width: 100%; justify-content: space-between; }
+      .nav-btn { flex: 1; justify-content: center; font-size: .58rem; padding: 10px 6px; }
+      .nav-btn svg { display: none; }
+    }
+ 
+    /* ============================================================
+       MAIN + PANELS
+       ============================================================ */
+    main { flex: 1; }
+ 
+    .panel {
+      display: none; opacity: 0; transform: translateY(10px);
+      transition: opacity .42s var(--ease), transform .46s var(--ease);
+    }
+    .panel.show  { display: block; }
+    .panel.active { opacity: 1; transform: none; }
+ 
+    .panel-wrap {
+      max-width: 860px; margin: 0 auto;
+      padding: 40px 20px 80px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 36px;
+    }
+ 
+    /* ============================================================
+       HOME
+       ============================================================ */
+    .home-heading { text-align: center; }
+    .home-title {
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 900; letter-spacing: -.025em; line-height: 1;
+      margin-bottom: 10px;
+    }
+    .home-title .sl { color: var(--cyan); }
+    .home-title .nm {
+      background: linear-gradient(100deg, var(--ice) 10%, var(--accent) 48%, var(--cyan) 90%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 30px rgba(79,172,254,.2));
+    }
+    .home-date {
+      font-size: .62rem; font-weight: 500; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--faint);
+    }
+ 
+    /* Big FunFri-style icon tiles */
+    .icon-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) { .icon-grid { grid-template-columns: repeat(2, 1fr); } }
+ 
+    .icon-tile {
+      appearance: none; background: var(--tile-bg); color: inherit;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px 16px 24px;
+      cursor: pointer; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
+      position: relative; overflow: hidden;
+    }
+    .icon-tile::before {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(145deg, rgba(79,172,254,.06), transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .icon-tile:hover {
+      transform: translateY(-6px);
+      border-color: var(--border-hi);
+      background: var(--tile-hover);
+      box-shadow: 0 12px 40px rgba(0,212,255,.12);
+    }
+    .icon-tile:hover::before { opacity: 1; }
+    .icon-tile:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+ 
+    .tile-icon-wrap {
+      width: 68px; height: 68px; border-radius: 50%;
+      display: grid; place-items: center; flex-shrink: 0;
+      background: rgba(79,172,254,.1);
+      border: 1px solid rgba(79,172,254,.25);
+      box-shadow: 0 0 28px rgba(0,212,255,.1);
+      transition: box-shadow .25s;
+    }
+    .icon-tile:hover .tile-icon-wrap { box-shadow: 0 0 36px rgba(0,212,255,.22); }
+    .tile-icon-wrap svg {
+      width: 32px; height: 32px;
+      color: var(--cyan);
+      filter: drop-shadow(0 0 10px rgba(0,212,255,.45));
+    }
+ 
+    .tile-label {
+      font-size: .58rem; font-weight: 700; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--faint);
+    }
+    .tile-title {
+      font-size: .82rem; font-weight: 800; color: var(--ice); letter-spacing: -.01em;
+    }
+ 
+    .online-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .62rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--faint);
+    }
+    .online-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 12px var(--cyan);
+      animation: pulse-dot 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.4); opacity: .6; }
+    }
+    .online-count { color: var(--cyan); font-weight: 800; }
+ 
+    .copy-line {
+      font-size: .58rem; font-weight: 500; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--faint);
+    }
+ 
+    /* ============================================================
+       GAMES PANEL
+       ============================================================ */
+    .games-title-row { width: 100%; text-align: center; }
+    .games-eyebrow {
+      font-size: .58rem; font-weight: 600; letter-spacing: .24em;
+      text-transform: uppercase; color: var(--faint); margin-bottom: 10px;
+    }
+    .games-heading {
+      font-size: clamp(1.4rem, 4vw, 2.4rem);
+      font-weight: 900; letter-spacing: -.02em;
+      line-height: 1.05; color: var(--ice);
+    }
+    .games-heading .ver  { color: var(--accent); }
+    .games-heading .dash { color: var(--faint); margin: 0 .3em; }
+    .games-heading .lbl  { color: var(--cyan); }
+    .games-sub {
+      margin-top: 10px; font-size: .62rem; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
+    }
+ 
+    .game-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .game-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 440px) { .game-grid { grid-template-columns: 1fr; } }
+ 
+    .game-tile {
+      --delay: 0ms;
+      position: relative; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--tile-bg);
+      overflow: hidden; cursor: pointer;
+      display: flex; flex-direction: column;
+      opacity: 0; transform: translateY(16px) scale(.98);
+      transition:
+        opacity .4s var(--ease) var(--delay),
+        transform .4s var(--ease) var(--delay),
+        border-color .2s, box-shadow .2s;
+    }
+    .panel.games-panel.revealed .game-tile {
+      opacity: 1; transform: none;
+    }
+    .game-tile:hover {
+      border-color: var(--border-hi);
+      box-shadow: 0 10px 36px rgba(0,212,255,.14);
+      transform: translateY(-4px);
+    }
+    .game-tile:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+ 
+    .game-thumb {
+      aspect-ratio: 4/3; position: relative; overflow: hidden;
+    }
+    .game-thumb img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transform: scale(1.02);
+      transition: transform .55s var(--ease);
+    }
+    .game-tile:hover .game-thumb img { transform: scale(1.08); }
+    .game-thumb::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 45%, rgba(6,16,24,.95));
+      pointer-events: none;
+    }
+ 
+    .game-badge {
+      position: absolute; top: 10px; left: 10px; z-index: 2;
+      font-size: .52rem; font-weight: 800; letter-spacing: .16em;
+      text-transform: uppercase; padding: 5px 10px; border-radius: 999px;
+    }
+    .badge-featured { background: var(--cyan);   color: var(--abyss); }
+    .badge-new      { background: var(--accent); color: var(--abyss); }
+    .badge-beta     { background: rgba(232,244,255,.12); color: var(--ice); border: 1px solid var(--border-hi); }
+ 
+    .game-info {
+      padding: 14px 16px 16px;
+      display: flex; flex-direction: column; gap: 10px; flex: 1;
+    }
+    .game-name {
+      font-size: .82rem; font-weight: 800; letter-spacing: -.01em;
+      color: var(--ice); line-height: 1.2;
+    }
+    .game-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .game-tag {
+      font-size: .52rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; padding: 4px 8px; border-radius: 999px;
+      background: rgba(79,172,254,.08); border: 1px solid var(--border);
+      color: var(--faint);
+    }
+    .game-actions { display: flex; gap: 7px; margin-top: auto; }
+ 
+    .g-btn {
+      flex: 1; min-width: 0;
+      appearance: none; cursor: pointer;
+      font-family: var(--font); font-size: .58rem; font-weight: 800;
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: 10px 8px; border-radius: 10px;
+      transition: transform .18s var(--ease), box-shadow .18s;
+      text-align: center; display: block;
+    }
+    .g-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .g-play {
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      color: var(--abyss); border: none;
+      box-shadow: 0 6px 20px rgba(79,172,254,.28);
+    }
+    .g-play:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,255,.38); }
+    .g-soon {
+      background: rgba(255,255,255,.04); color: var(--faint);
+      border: 1px solid var(--border); cursor: default;
+    }
+    .g-wish {
+      background: transparent; color: var(--accent);
+      border: 1px solid rgba(79,172,254,.3);
+    }
+    .g-wish:hover { border-color: var(--accent); background: rgba(79,172,254,.06); }
+ 
+    /* ============================================================
+       GENERIC PANELS (Apps / Tools / Credits)
+       ============================================================ */
+    .sec-heading { width: 100%; text-align: center; }
+    .sec-title {
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 900; letter-spacing: -.02em; color: var(--ice);
+    }
+    .sec-sub {
+      margin-top: 8px; font-size: .6rem; font-weight: 500;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--faint);
+    }
+ 
+    .card-grid {
+      width: 100%;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    }
+    @media (max-width: 500px) { .card-grid { grid-template-columns: 1fr; } }
+ 
+    .info-card {
+      background: var(--tile-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: transform .22s var(--ease), border-color .22s;
+    }
+    .info-card:hover { transform: translateY(-4px); border-color: var(--border-hi); }
+    .card-icon { font-size: 1.6rem; }
+    .card-title { font-size: .82rem; font-weight: 800; color: var(--ice); letter-spacing: -.01em; }
+    .card-body  { font-size: .65rem; font-weight: 500; color: var(--faint); line-height: 1.6; }
+ 
+    .tl { list-style: none; width: 100%; display: flex; flex-direction: column; gap: 18px; }
+    .tl li { position: relative; padding-left: 24px; }
+    .tl li::before {
+      content: ""; position: absolute; left: 4px; top: 5px;
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 12px rgba(0,212,255,.5);
+    }
+    .tl li::after {
+      content: ""; position: absolute; left: 8px; top: 20px;
+      bottom: -18px; width: 1px;
+      background: linear-gradient(180deg, rgba(0,212,255,.35), transparent);
+    }
+    .tl li:last-child::after { display: none; }
+    .tl-yr {
+      font-size: .58rem; font-weight: 700; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 3px;
+    }
+    .tl-txt { font-size: .7rem; font-weight: 500; color: var(--mist); }
+ 
+    .cred-table {
+      width: 100%;
+      background: var(--tile-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .cred-table-title {
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      font-size: .65rem; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--cyan);
+    }
+    .cred-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 18px; border-bottom: 1px solid rgba(79,172,254,.08);
+      font-size: .68rem; font-weight: 600;
+    }
+    .cred-row:last-child { border-bottom: 0; }
+    .cred-role { color: var(--faint); font-size: .6rem; }
+ 
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .site-footer {
+      border-top: 1px solid var(--border); padding: 22px 24px;
+      position: relative; z-index: 10;
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; gap: 14px;
+    }
+    .footer-copy {
+      font-size: .58rem; font-weight: 500; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--faint);
+    }
+    .footer-links { display: flex; gap: 18px; }
+    .footer-links a {
+      font-size: .58rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--faint);
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: var(--cyan); }
   </style>
 </head>
 <body>
   <!-- ==================== INTRO ==================== -->
   <div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-lbl" aria-describedby="intro-desc">
-    <!-- Existing intro content unchanged -->
+    <div class="intro-particles" id="intro-particles" aria-hidden="true"></div>
+ 
+    <div class="intro-loading" id="intro-loading">
+      <p class="intro-loading-label">Loading Glacier…</p>
+      <div class="intro-bar" aria-hidden="true">
+        <span class="intro-bar-fill" id="intro-fill"></span>
+      </div>
+    </div>
+ 
+    <div class="intro-welcome" id="intro-welcome">
+      <p class="slash-title" id="intro-lbl">
+        <span class="sl">/</span> <span class="nm">Glacier</span> <span class="sl">\</span>
+      </p>
+      <p class="intro-sub" id="intro-desc">The go to site for games online!</p>
+      <button type="button" class="enter-btn" id="intro-enter">Enter</button>
+    </div>
+ 
+    <button type="button" class="skip-btn" id="intro-skip">Skip intro</button>
   </div>
  
   <!-- ==================== BACKGROUND ==================== -->
@@ -25,49 +670,454 @@
  
   <!-- ==================== APP ==================== -->
   <div class="app fade-in" id="app">
-
-    <!-- ==================== SEARCH/PROXY INPUT ==================== -->
-    <div style="margin:16px auto; max-width:400px; display:flex; gap:8px;">
-      <input id="game-input" type="text"
-        placeholder="Enter a website (e.g., roblox.com)"
-        style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #4facfe;
-               background:var(--navy); color:var(--ice); font-weight:500;" />
-      <button onclick="goToGame()"
-        style="padding:8px 16px; border-radius:8px; background:var(--accent); color:var(--abyss);
-               font-weight:700; cursor:pointer;">Go</button>
-    </div>
-
+ 
     <header class="site-header">
-      <!-- Existing header content unchanged -->
+      <div class="hdr">
+        <button class="brand" id="brand-btn" aria-label="Glacier home">
+          <div class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3L4 9V19L12 23L20 19V9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M12 10L8.5 12.25V16L12 18L15.5 16V12.25L12 10Z" fill="currentColor" opacity=".5"/>
+            </svg>
+          </div>
+          <span class="brand-name">
+            <span class="sl">/</span> <span>Glacier</span> <span class="sl">\</span>
+          </span>
+        </button>
+ 
+        <div class="nav-wrap">
+          <nav class="nav" role="tablist" aria-label="Glacier">
+            <span class="nav-pill" id="nav-pill" aria-hidden="true"></span>
+            <button class="nav-btn" role="tab" id="tab-home"    aria-selected="true"  aria-controls="panel-home">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 11L12 4l8 7v9a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9z"/></svg>
+              Home
+            </button>
+            <button class="nav-btn" role="tab" id="tab-games"   aria-selected="false" aria-controls="panel-games">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="3"/><path d="M8 10v4M6 12h4M14 11h4M14 13h4"/></svg>
+              Games
+            </button>
+            <button class="nav-btn" role="tab" id="tab-apps"    aria-selected="false" aria-controls="panel-apps">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              Apps
+            </button>
+            <button class="nav-btn" role="tab" id="tab-tools"   aria-selected="false" aria-controls="panel-tools">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.1 7.1l-6.4 6.4a2 2 0 01-2.8-2.8l6.4-6.4a6 6 0 017.1-7.1l-3.8 3.8z"/></svg>
+              Tools
+            </button>
+            <button class="nav-btn" role="tab" id="tab-credits" aria-selected="false" aria-controls="panel-credits">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              Credits
+            </button>
+          </nav>
+        </div>
+      </div>
     </header>
-
-    <main>
-      <!-- Your existing panels and game-grid here -->
+ 
+    <main id="main">
+ 
+      <!-- ===== HOME ===== -->
+      <section class="panel show active" id="panel-home" role="tabpanel" aria-labelledby="tab-home" tabindex="0">
+        <div class="panel-wrap">
+          <div class="home-heading">
+            <h1 class="home-title">
+              <span class="sl">/</span><span class="nm">Glacier</span><span class="sl">\</span>
+            </h1>
+            <p class="home-date" id="home-date"></p>
+          </div>
+ 
+          <!-- 4 big icon tiles — FunFri home layout -->
+          <div class="icon-grid" role="list" aria-label="Sections">
+            <button type="button" class="icon-tile" data-tab="games" role="listitem">
+              <div class="tile-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="20" height="14" rx="3"/><path d="M8 10v4M6 12h4M14 11h4M14 13h4"/></svg>
+              </div>
+              <span class="tile-label">Play</span>
+              <span class="tile-title">Games</span>
+            </button>
+            <button type="button" class="icon-tile" data-tab="apps" role="listitem">
+              <div class="tile-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              </div>
+              <span class="tile-label">Open</span>
+              <span class="tile-title">Apps</span>
+            </button>
+            <button type="button" class="icon-tile" data-tab="tools" role="listitem">
+              <div class="tile-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.1 7.1l-6.4 6.4a2 2 0 01-2.8-2.8l6.4-6.4a6 6 0 017.1-7.1l-3.8 3.8z"/></svg>
+              </div>
+              <span class="tile-label">Utility</span>
+              <span class="tile-title">Tools</span>
+            </button>
+            <button type="button" class="icon-tile" data-tab="credits" role="listitem">
+              <div class="tile-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              </div>
+              <span class="tile-label">Info</span>
+              <span class="tile-title">Credits</span>
+            </button>
+          </div>
+ 
+          <div class="online-row" role="status" aria-live="polite">
+            <span class="online-dot" aria-hidden="true"></span>
+            <span class="online-count" id="online-count">128</span>
+            <span>explorers online</span>
+          </div>
+ 
+          <p class="copy-line">© <span id="home-year"></span> Glacier. All rights reserved.</p>
+        </div>
+      </section>
+ 
+      <!-- ===== GAMES ===== -->
+      <section class="panel games-panel" id="panel-games" role="tabpanel" aria-labelledby="tab-games" hidden tabindex="0">
+        <div class="panel-wrap">
+          <div class="games-title-row">
+            <p class="games-eyebrow">All games should work as of <span id="games-date"></span>!</p>
+            <h2 class="games-heading">
+              Glacier<span class="ver"> V1.0</span><span class="dash"> — </span><span class="lbl">Games</span>
+            </h2>
+            <p class="games-sub">Total games: <strong id="game-count" style="color:var(--accent)">6</strong></p>
+          </div>
+          <div class="game-grid" id="game-grid" aria-label="Game library"></div>
+          <p class="copy-line">© <span class="yr"></span> Glacier. All rights reserved.</p>
+        </div>
+      </section>
+ 
+      <!-- ===== APPS ===== -->
+      <section class="panel" id="panel-apps" role="tabpanel" aria-labelledby="tab-apps" hidden tabindex="0">
+        <div class="panel-wrap">
+          <div class="sec-heading">
+            <h2 class="sec-title">Apps</h2>
+            <p class="sec-sub">Browser tools — hook up your own scripts when ready</p>
+          </div>
+          <div class="card-grid">
+            <div class="info-card"><span class="card-icon" aria-hidden="true">📝</span><p class="card-title">Glacier Notes</p><p class="card-body">Quick scratchpad — wire up localStorage when you're ready.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">🧮</span><p class="card-title">Frost Calc</p><p class="card-body">School-friendly calculator skin. Customize freely.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">🎵</span><p class="card-title">Aurora Player</p><p class="card-body">Embed a legal stream or playlist iframe in this slot.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">📁</span><p class="card-title">IceBox Drive</p><p class="card-body">Link out to your files or a read-only viewer.</p></div>
+          </div>
+          <p class="copy-line">© <span class="yr"></span> Glacier. All rights reserved.</p>
+        </div>
+      </section>
+ 
+      <!-- ===== TOOLS ===== -->
+      <section class="panel" id="panel-tools" role="tabpanel" aria-labelledby="tab-tools" hidden tabindex="0">
+        <div class="panel-wrap">
+          <div class="sec-heading">
+            <h2 class="sec-title">Tools</h2>
+            <p class="sec-sub">Shortcuts and utilities for the hub</p>
+          </div>
+          <div class="card-grid">
+            <div class="info-card"><span class="card-icon" aria-hidden="true">💌</span><p class="card-title">Request a tile</p><p class="card-body">Swap for a mailto:, Discord, or GitHub Issues link.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">🎲</span><p class="card-title">Random game</p><p class="card-body">Later: pick a random row from the catalog array in JS.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">⌨️</span><p class="card-title">Keyboard map</p><p class="card-body">List WASD / touch controls for your featured title.</p></div>
+            <div class="info-card"><span class="card-icon" aria-hidden="true">📋</span><p class="card-title">Changelog</p><p class="card-body">Ship notes for classmates who bookmark the hub.</p></div>
+          </div>
+          <p class="copy-line">© <span class="yr"></span> Glacier. All rights reserved.</p>
+        </div>
+      </section>
+ 
+      <!-- ===== CREDITS ===== -->
+      <section class="panel" id="panel-credits" role="tabpanel" aria-labelledby="tab-credits" hidden tabindex="0">
+        <div class="panel-wrap">
+          <div class="sec-heading">
+            <h2 class="sec-title">Credits</h2>
+            <p class="sec-sub">About Glacier — unblocked games</p>
+          </div>
+          <ul class="tl" aria-label="Timeline">
+            <li><p class="tl-yr">2024</p><p class="tl-txt">Sketches for a single-file hub that feels intentional.</p></li>
+            <li><p class="tl-yr">2025</p><p class="tl-txt">First deploy on Neocities — zero server, all vibe.</p></li>
+            <li><p class="tl-yr">2026</p><p class="tl-txt">Portal shell + intro screen — /Glacier\ goes live.</p></li>
+          </ul>
+          <div class="cred-table">
+            <p class="cred-table-title">Team</p>
+            <div class="cred-row"><span>Art direction</span><span class="cred-role">Glacier Core</span></div>
+            <div class="cred-row"><span>Front-end</span><span class="cred-role">Poggermarble, Zachawiez</span></div>
+            <div class="cred-row"><span>Inspired by</span><span class="cred-role">All the unblocked games out there</span></div>
+          </div>
+          <p class="copy-line">© <span class="yr"></span> Glacier. All rights reserved.</p>
+        </div>
+      </section>
+ 
     </main>
-
+ 
     <footer class="site-footer">
-      <!-- Existing footer content unchanged -->
+      <div class="footer-inner">
+        <p class="footer-copy">© <span class="yr"></span> Glacier · All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#" id="foot-games-link">Games</a>
+          <a href="https://neocities.org/" rel="noopener noreferrer">Neocities</a>
+        </div>
+      </div>
     </footer>
   </div>
-
-  <!-- ==================== SCRIPT ==================== -->
+ 
   <script>
-    // Proxy redirect from input
-    function goToGame() {
-      let url = document.getElementById('game-input').value.trim();
-      if (!url) return alert('Enter a valid URL!');
-      if (!url.startsWith('http')) url = 'https://' + url;
-      window.location.href = '/proxy/' + encodeURIComponent(url);
+  (function(){
+    "use strict";
+ 
+    var GAMES = [
+      { title:"these r all placeholders matt",        tags:["Racing","Arcade"],     badge:"New",      status:"soon",     palette:["#0a1928","#4facfe","#00d4ff"] },
+      { title:"Cryo Cascade",        tags:["Puzzle","Zen"],        badge:"Featured", status:"external", url:"https://example.com", palette:["#061018","#132f4a","#e8f4ff"] },
+      { title:"Permafrost Protocol", tags:["Roguelite","Tactical"],badge:"Beta",     status:"soon",     palette:["#132f4a","#4facfe","#ffffff"] },
+      { title:"Cirrus Nine",         tags:["Shooter","Minimal"],   badge:"Featured", status:"external", url:"https://example.com", palette:["#050c14","#00d4ff","#79b8ff"] },
+      { title:"Sastrugi",            tags:["Platformer","Flow"],   badge:"New",      status:"soon",     palette:["#0a1928","#e8f4ff","#4facfe"] },
+      { title:"Glassline Relay",     tags:["Co-op","Sports"],      badge:"Featured", status:"external", url:"https://example.com", palette:["#061018","#4facfe","#132f4a"] },
+    ];
+ 
+    function rmo(){ return window.matchMedia("(prefers-reduced-motion:reduce)").matches; }
+ 
+    function thumb(title, pal){
+      var c0=pal[0]||"#0a1928", c1=pal[1]||"#4facfe", c2=pal[2]||"#00d4ff";
+      var t=title.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+      return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">'
+        +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+        +'<stop stop-color="'+c0+'"/><stop offset=".5" stop-color="'+c1+'" stop-opacity=".88"/>'
+        +'<stop offset="1" stop-color="'+c2+'"/></linearGradient>'
+        +'<filter id="bl"><feGaussianBlur stdDeviation="22"/></filter></defs>'
+        +'<rect width="640" height="480" fill="url(#g)"/>'
+        +'<circle cx="160" cy="120" r="120" fill="'+c1+'" opacity=".18" filter="url(#bl)"/>'
+        +'<circle cx="500" cy="380" r="100" fill="'+c2+'" opacity=".14" filter="url(#bl)"/>'
+        +'<text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"'
+        +' fill="rgba(232,244,255,.9)" font-family="Unbounded,Arial,sans-serif"'
+        +' font-size="34" font-weight="900" letter-spacing="-1">'+t+'</text>'
+        +'<text x="50%" y="70%" text-anchor="middle"'
+        +' fill="rgba(232,244,255,.4)" font-family="Unbounded,Arial,sans-serif"'
+        +' font-size="13" font-weight="700" letter-spacing="3">CLICK TO PLAY</text>'
+        +'</svg>'
+      );
     }
-
-    // Auto-update all existing .g-play buttons to use proxy
-    document.querySelectorAll('.g-play').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.preventDefault();
-        const url = btn.dataset.url || btn.href || 'https://example.com';
-        window.location.href = '/proxy/' + encodeURIComponent(url);
+ 
+    var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var now=new Date(), yr=String(now.getFullYear());
+    var dateStr=MONTHS[now.getMonth()]+" "+now.getDate()+", "+yr;
+    var monthDay=MONTHS[now.getMonth()]+" "+now.getDate();
+ 
+    var $=function(id){return document.getElementById(id);};
+ 
+    var introEl=$("intro"), introFill=$("intro-fill"),
+        introEnter=$("intro-enter"), introSkip=$("intro-skip"),
+        introParti=$("intro-particles"),
+        app=$("app"), navPill=$("nav-pill"), brandBtn=$("brand-btn"),
+        gameGrid=$("game-grid"), onlineEl=$("online-count"),
+        footLink=$("foot-games-link");
+ 
+    /* date/year */
+    var hd=$("home-date"); if(hd) hd.textContent=dateStr;
+    var gd=$("games-date"); if(gd) gd.textContent=monthDay+", "+yr;
+    var hy=$("home-year"); if(hy) hy.textContent=yr;
+    document.querySelectorAll(".yr").forEach(function(el){el.textContent=yr;});
+ 
+    var TABS=[
+      {id:"home",    btn:$("tab-home"),    panel:$("panel-home")},
+      {id:"games",   btn:$("tab-games"),   panel:$("panel-games")},
+      {id:"apps",    btn:$("tab-apps"),    panel:$("panel-apps")},
+      {id:"tools",   btn:$("tab-tools"),   panel:$("panel-tools")},
+      {id:"credits", btn:$("tab-credits"), panel:$("panel-credits")},
+    ];
+ 
+    var curTab="home", revealed=false, hideMap={};
+ 
+    function moveIndicator(btn){
+      if(!navPill||!btn) return;
+      navPill.style.width=btn.offsetWidth+"px";
+      navPill.style.transform="translateX("+btn.offsetLeft+"px)";
+    }
+ 
+    function setTab(id){
+      if(id===curTab) return;
+      curTab=id;
+      TABS.forEach(function(t){
+        var active=t.id===id;
+        t.btn.setAttribute("aria-selected",active?"true":"false");
+        if(active){
+          clearTimeout(hideMap[t.id]);
+          t.panel.removeAttribute("hidden"); t.panel.hidden=false;
+          requestAnimationFrame(function(){
+            requestAnimationFrame(function(){
+              t.panel.classList.add("show");
+              requestAnimationFrame(function(){ t.panel.classList.add("active"); });
+            });
+          });
+          setTimeout(function(){ if(t.id===curTab) t.panel.focus({preventScroll:true}); },55);
+        } else {
+          t.panel.classList.remove("active");
+          clearTimeout(hideMap[t.id]);
+          hideMap[t.id]=setTimeout(function(){
+            if(t.btn.getAttribute("aria-selected")!=="true"){
+              t.panel.classList.remove("show"); t.panel.hidden=true;
+            }
+          },450);
+        }
+      });
+      requestAnimationFrame(function(){
+        TABS.forEach(function(t){ if(t.id===id) moveIndicator(t.btn); });
+      });
+      if(id==="games"&&!revealed){
+        setTimeout(function(){
+          var gp=$("panel-games"); if(gp) gp.classList.add("revealed");
+          revealed=true;
+        },90);
+      }
+    }
+ 
+    TABS.forEach(function(t){ t.btn.addEventListener("click",function(){ setTab(t.id); }); });
+    document.querySelectorAll("[data-tab]").forEach(function(el){
+      el.addEventListener("click",function(){
+        var tgt=el.getAttribute("data-tab");
+        if(["home","games","apps","tools","credits"].indexOf(tgt)!==-1) setTab(tgt);
       });
     });
+    if(brandBtn) brandBtn.addEventListener("click",function(){ setTab("home"); });
+    if(footLink) footLink.addEventListener("click",function(e){ e.preventDefault(); setTab("games"); });
+ 
+    /* Render games */
+    function renderGames(){
+      if(!gameGrid) return;
+      gameGrid.innerHTML="";
+      GAMES.forEach(function(g,i){
+        var tile=document.createElement("article");
+        tile.className="game-tile";
+        tile.setAttribute("aria-label",g.title);
+        tile.style.setProperty("--delay",(i*60)+"ms");
+ 
+        var td=document.createElement("div"); td.className="game-thumb";
+        var img=document.createElement("img");
+        img.src=thumb(g.title,g.palette); img.alt=""; img.loading="lazy"; img.decoding="async";
+        var bdg=document.createElement("span");
+        bdg.className="game-badge badge-"+(g.badge||"new").toLowerCase();
+        bdg.textContent=g.badge;
+        td.appendChild(img); td.appendChild(bdg);
+ 
+        var inf=document.createElement("div"); inf.className="game-info";
+        var nm=document.createElement("h3"); nm.className="game-name"; nm.textContent=g.title;
+        var tgs=document.createElement("div"); tgs.className="game-tags";
+        g.tags.forEach(function(tag){
+          var ch=document.createElement("span"); ch.className="game-tag"; ch.textContent=tag;
+          tgs.appendChild(ch);
+        });
+        var acts=document.createElement("div"); acts.className="game-actions";
+ 
+        if(g.status==="external"){
+          var pl=document.createElement("a");
+          pl.className="g-btn g-play"; pl.href=g.url||"#";
+          pl.target="_blank"; pl.rel="noopener noreferrer"; pl.textContent="▶ Play";
+          var ws=document.createElement("button");
+          ws.type="button"; ws.className="g-btn g-wish"; ws.textContent="♡ Save";
+          ws.addEventListener("click",function(){ ws.textContent="♥ Saved!"; setTimeout(function(){ws.textContent="♡ Save";},1600); });
+          acts.appendChild(pl); acts.appendChild(ws);
+        } else {
+          var sn=document.createElement("button");
+          sn.type="button"; sn.className="g-btn g-soon"; sn.textContent="Coming Soon"; sn.disabled=true;
+          var no=document.createElement("button");
+          no.type="button"; no.className="g-btn g-wish"; no.textContent="Notify Me";
+          no.addEventListener("click",function(){ no.textContent="✓ Noted!"; setTimeout(function(){no.textContent="Notify Me";},2000); });
+          acts.appendChild(sn); acts.appendChild(no);
+        }
+ 
+        inf.appendChild(nm); inf.appendChild(tgs); inf.appendChild(acts);
+        tile.appendChild(td); tile.appendChild(inf);
+        gameGrid.appendChild(tile);
+      });
+      var gc=$("game-count"); if(gc) gc.textContent=String(GAMES.length);
+    }
+ 
+    /* Intro */
+    function spawnParticles(){
+      if(!introParti||rmo()) return;
+      for(var i=0;i<20;i++){
+        var p=document.createElement("span"); p.className="intro-p";
+        var sz=3+Math.random()*7;
+        p.style.cssText=["left:"+Math.random()*100+"%","bottom:"+Math.random()*25+"%",
+          "width:"+sz+"px","height:"+sz+"px",
+          "animation-duration:"+(9+Math.random()*12)+"s",
+          "animation-delay:"+Math.random()*8+"s","opacity:0"].join(";");
+        introParti.appendChild(p);
+      }
+    }
+ 
+    function dismissIntro(){
+      if(!introEl||introEl.dataset.done==="1") return;
+      introEl.dataset.done="1";
+      document.body.classList.remove("intro-open");
+      introEl.classList.add("hidden");
+      if(app) app.classList.add("visible");
+      setTimeout(function(){ TABS[0].btn.focus(); },80);
+      setTimeout(function(){ if(introEl.parentNode) introEl.parentNode.removeChild(introEl); },850);
+    }
+ 
+    function runIntro(){
+      if(!introEl){ if(app) app.classList.add("visible"); return; }
+      document.body.classList.add("intro-open");
+      spawnParticles();
+      if(rmo()){
+        introEl.classList.add("bar","welcome");
+        if(introEnter) introEnter.focus(); return;
+      }
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ introEl.classList.add("bar"); });
+      });
+      setTimeout(function(){
+        introEl.classList.add("welcome");
+        if(introEnter) introEnter.focus();
+      },1950);
+    }
+ 
+    if(introEnter) introEnter.addEventListener("click",dismissIntro);
+    if(introSkip)  introSkip.addEventListener("click",dismissIntro);
+ 
+    /* Snow */
+    var sc=$("snow-canvas"),sCtx=null,sW=0,sH=0,flakes=[],sRaf=null;
+    function initSnow(){
+      if(!sc||rmo()) return;
+      sCtx=sc.getContext("2d",{alpha:true}); sizeSnow();
+      var n=Math.min(110,Math.floor(sW*sH/22000));
+      for(var i=0;i<n;i++) flakes.push({x:Math.random()*sW,y:Math.random()*sH,r:Math.random()*1.8+.3,s:Math.random()*.45+.1,w:Math.random()*.7+.2,o:Math.random()*.4+.1});
+      if(sRaf) cancelAnimationFrame(sRaf);
+      tickSnow();
+    }
+    function sizeSnow(){
+      if(!sc) return; sW=window.innerWidth; sH=window.innerHeight;
+      var dpr=Math.min(window.devicePixelRatio||1,2);
+      sc.width=Math.floor(sW*dpr); sc.height=Math.floor(sH*dpr);
+      sc.style.width=sW+"px"; sc.style.height=sH+"px";
+      if(sCtx) sCtx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    function tickSnow(){
+      if(!sCtx||rmo()) return;
+      sCtx.clearRect(0,0,sW,sH);
+      for(var i=0;i<flakes.length;i++){
+        var f=flakes[i]; f.y+=f.s; f.x+=Math.sin(f.y*.013)*f.w;
+        if(f.y>sH+4){ f.y=-4; f.x=Math.random()*sW; }
+        sCtx.globalAlpha=f.o; sCtx.fillStyle="rgba(232,244,255,.7)";
+        sCtx.beginPath(); sCtx.arc(f.x,f.y,f.r,0,Math.PI*2); sCtx.fill();
+      }
+      sCtx.globalAlpha=1; sRaf=requestAnimationFrame(tickSnow);
+    }
+ 
+    /* Online ticker */
+    function tickOnline(){
+      if(!onlineEl) return;
+      var n=parseInt(onlineEl.textContent,10)||100;
+      onlineEl.textContent=String(Math.max(40,Math.min(450,n+Math.floor(Math.random()*9)-4)));
+    }
+ 
+    /* Resize */
+    var resT;
+    window.addEventListener("resize",function(){
+      clearTimeout(resT); resT=setTimeout(function(){
+        sizeSnow();
+        TABS.forEach(function(t){ if(t.id===curTab) moveIndicator(t.btn); });
+      },80);
+    });
+ 
+    /* Boot */
+    renderGames(); runIntro();
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ moveIndicator(TABS[0].btn); }); });
+    initSnow();
+    setInterval(tickOnline,3800);
+    window.__GLACIER__={setTab:setTab,dismiss:dismissIntro};
+  })();
   </script>
 </body>
 </html>
