@@ -1,12 +1,12 @@
 {
-  "name": "proxy-app",
+  "name": "glacier-app",
   "version": "1.0.0",
+  "description": "Glacier website",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6"
+    "express": "^4.18.2"
   }
 }
