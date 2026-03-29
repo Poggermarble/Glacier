@@ -1,6 +1,7 @@
 {
-  "name": "glacier-app",
+  "name": "glacier",
   "version": "1.0.0",
+  "description": "Glacier Node app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
