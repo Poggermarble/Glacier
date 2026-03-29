@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Glacier — Free browser games. Play now!" />
+  <title>/ Glacier \</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* Existing CSS omitted for brevity (keep all your previous styles) */
+  </style>
+</head>
+<body>
+  <!-- ==================== INTRO ==================== -->
+  <div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-lbl" aria-describedby="intro-desc">
+    <!-- Existing intro content unchanged -->
+  </div>
+ 
+  <!-- ==================== BACKGROUND ==================== -->
+  <div class="bg" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+ 
+  <!-- ==================== APP ==================== -->
+  <div class="app fade-in" id="app">
+
+    <!-- ==================== SEARCH/PROXY INPUT ==================== -->
+    <div style="margin:16px auto; max-width:400px; display:flex; gap:8px;">
+      <input id="game-input" type="text"
+        placeholder="Enter a website (e.g., roblox.com)"
+        style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #4facfe;
+               background:var(--navy); color:var(--ice); font-weight:500;" />
+      <button onclick="goToGame()"
+        style="padding:8px 16px; border-radius:8px; background:var(--accent); color:var(--abyss);
+               font-weight:700; cursor:pointer;">Go</button>
+    </div>
+
+    <header class="site-header">
+      <!-- Existing header content unchanged -->
+    </header>
+
+    <main>
+      <!-- Your existing panels and game-grid here -->
+    </main>
+
+    <footer class="site-footer">
+      <!-- Existing footer content unchanged -->
+    </footer>
+  </div>
+
+  <!-- ==================== SCRIPT ==================== -->
+  <script>
+    // Proxy redirect from input
+    function goToGame() {
+      let url = document.getElementById('game-input').value.trim();
+      if (!url) return alert('Enter a valid URL!');
+      if (!url.startsWith('http')) url = 'https://' + url;
+      window.location.href = '/proxy/' + encodeURIComponent(url);
+    }
+
+    // Auto-update all existing .g-play buttons to use proxy
+    document.querySelectorAll('.g-play').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const url = btn.dataset.url || btn.href || 'https://example.com';
+        window.location.href = '/proxy/' + encodeURIComponent(url);
+      });
+    });
+  </script>
+</body>
+</html>
