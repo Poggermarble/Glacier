@@ -1,38 +1,12 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Serve the minimal dynamic UI
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Glacier Proxy</title>
-        <style>
-          body { font-family: sans-serif; background: #222; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 50px; }
-          input { width: 300px; padding: 10px; margin: 10px; }
-          button { padding: 10px 20px; cursor: pointer; }
-          iframe { width: 90%; height: 80vh; border: none; margin-top: 20px; }
-        </style>
-      </head>
-      <body>
-        <h1>Glacier Proxy</h1>
-        <input type="text" id="url" placeholder="Enter URL" />
-        <button onclick="load()">Go</button>
-        <iframe id="frame"></iframe>
-        <script>
-          function load() {
-            const url = encodeURIComponent(document.getElementById('url').value);
-            document.getElementById('frame').src = '/proxy?url=' + url;
-          }
-        </script>
-      </body>
-    </html>
-  `);
-});
+// Serve static UI
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Dynamic proxy endpoint
 app.use('/proxy', (req, res, next) => {
@@ -50,6 +24,11 @@ app.use('/proxy', (req, res, next) => {
     onProxyReq(proxyReq) { console.log(`Proxying to ${validUrl}`); },
     onError(err, req, res) { res.status(500).send('Proxy error: ' + err.message); }
   })(req, res, next);
+});
+
+// Fallback to index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`Glacier proxy running on port ${PORT}`));
