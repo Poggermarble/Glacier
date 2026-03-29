@@ -1,36 +1,46 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const path = require('path');
+const bodyParser = require('body-parser');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-// Serve your static files (index.html + CSS/JS)
-app.use(express.static(path.join(__dirname, 'public')));
+// parse JSON bodies for POST requests
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Proxy endpoint
-app.use('/proxy', (req, res, next) => {
-  const targetUrl = decodeURIComponent(req.url.slice(1));
-  if (!targetUrl.startsWith('http')) {
+// Serve the front-end UI (if you have a public folder)
+app.use(express.static('public'));
+
+// Proxy endpoint for dynamic URLs
+app.all('/proxy', (req, res, next) => {
+  const target = req.query.url || req.body.url;
+
+  if (!target) {
+    return res.status(400).send('Missing URL parameter');
+  }
+
+  // Validate URL
+  let validUrl;
+  try {
+    validUrl = new URL(target).toString();
+  } catch (err) {
     return res.status(400).send('Invalid URL');
   }
 
-  return createProxyMiddleware({
-    target: targetUrl,
+  createProxyMiddleware({
+    target: validUrl,
     changeOrigin: true,
-    secure: false,
-    cookieDomainRewrite: '*', // bypass some cookie restrictions
-    headers: {
-      host: new URL(targetUrl).host
+    pathRewrite: (path, req) => {
+      // remove /proxy from path
+      return path.replace(/^\/proxy/, '');
     },
-    pathRewrite: { '^/proxy/': '/' }
+    onProxyReq(proxyReq, req, res) {
+      console.log(`Proxying request: ${req.method} ${req.originalUrl} -> ${validUrl}`);
+    },
   })(req, res, next);
 });
 
-// Fallback to index.html for SPA routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.listen(PORT, () => {
-  console.log(`Glacier proxy running on port ${PORT}`);
+  console.log(`Glacier dynamic proxy running on port ${PORT}`);
 });
